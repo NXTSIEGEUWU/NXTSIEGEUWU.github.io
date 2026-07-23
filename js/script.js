@@ -50,59 +50,27 @@
     $container.removeClass('mobile-nav-on');
   });
 
-  // Share
-  var shareBoxTemplate =
-    '<div class="article-share-box">' +
-      '<input class="article-share-input" type="text" value="{url}" readonly>' +
-      '<div class="article-share-links">' +
-        '<a href="https://twitter.com/intent/tweet?url={url}&text={title}" class="article-share-twitter" target="_blank" title="Twitter"></a>' +
-        '<a href="https://www.facebook.com/sharer/sharer.php?u={url}" class="article-share-facebook" target="_blank" title="Facebook"></a>' +
-        '<a href="http://service.weibo.com/share/share.php?url={url}&title={title}" class="article-share-pinterest" target="_blank" title="微博"></a>' +
-        '<a href="javascript:void(0)" class="article-share-linkedin copy-link" title="复制链接"></a>' +
-      '</div>' +
-    '</div>';
-
+  // Share - copy link
   $('.article-share-link').on('click', function(e){
-    e.stopPropagation();
-
+    e.preventDefault();
     var $link = $(this);
-    var $box = $link.next('.article-share-box');
+    var url = $link.data('url');
+    var text = $link.text();
 
-    // Close all other share boxes first
-    $('.article-share-box').not($box).removeClass('on');
-    $('.article-share-link').not($link).removeClass('on');
-
-    if ($box.length) {
-      $box.toggleClass('on');
-    } else {
-      var url = $link.data('url');
-      var title = $link.data('title') || '';
-      var html = shareBoxTemplate.replace(/\{url\}/g, encodeURIComponent(url)).replace(/\{title\}/g, encodeURIComponent(title));
-      var $newBox = $(html).insertAfter($link);
-      $newBox.addClass('on');
-      // Select input content on show
-      $newBox.find('.article-share-input').focus().select();
+    var ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      $link.text('已复制!');
+      setTimeout(function(){ $link.text(text); }, 1500);
+    } catch (err) {
+      $link.text('复制失败');
+      setTimeout(function(){ $link.text(text); }, 1500);
     }
-  });
-
-  $(document).on('click', '.copy-link', function(){
-    var $input = $(this).closest('.article-share-box').find('.article-share-input');
-    $input.focus().select();
-    if (document.execCommand('copy')) {
-      var $btn = $(this);
-      $btn.css('color', '#4caf50');
-      setTimeout(function(){ $btn.css('color', ''); }, 1500);
-    }
-  });
-
-  $(document).on('click', '.article-share-input', function(){
-    $(this).select();
-  });
-
-  // Close share box when clicking outside
-  $(document).on('click', function(e){
-    if (!$(e.target).closest('.article-share-box, .article-share-link').length) {
-      $('.article-share-box').removeClass('on');
-    }
+    document.body.removeChild(ta);
   });
 })(jQuery);
